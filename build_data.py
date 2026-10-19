@@ -43,7 +43,8 @@ summary = {}
 for m in MODELS:
     k = m["key"]
     summary[k] = {s: stats([p["id"] for p in prompts if p["id"][0] == s], k) for s, _ in SETS}
-    summary[k]["all"] = stats([p["id"] for p in prompts], k)
+    all_ = stats([p["id"] for p in prompts], k)
+    summary[k]["all"] = all_ if all_ and all_["n"] == len(prompts) else None  # no "All 300" figure from a partial set
     secs = [r["secs"] for r in results[k].values() if r.get("secs")]
     summary[k]["secs"] = statistics.median(secs) if secs else None
 
