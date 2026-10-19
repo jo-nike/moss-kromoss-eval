@@ -7,7 +7,7 @@ image against each prompt's own checklist.
 **View the comparison: https://jo-nike.github.io/moss-kromoss-eval/**
 
 > Status 2026-10-19: MOSS SFT and Kromoss 8-step are complete and graded. Kromoss 25-step is still rendering
-> (164 of 300 on the site); sets A to C are graded.
+> (213 of 300 on the site); sets A to D are graded.
 
 | column | weights | steps | sampler | CFG | skip-layer guidance |
 |---|---|---|---|---|---|
@@ -47,7 +47,7 @@ Six sets of 50, each prompt written with a checklist of 4-8 things the image mus
 | A people | 4.00 / 78% | 3.90 / 74% | 3.70 / 71% |
 | B groups | 4.10 / 82% | 3.94 / 76% | 3.94 / 78% |
 | C sci-fi | 4.10 / 80% | 4.04 / 79% | 4.12 / 76% |
-| D styles | 4.24 / 83% | pending | 4.24 / 81% |
+| D styles | 4.24 / 83% | 4.28 / 85% | 4.24 / 81% |
 | E text | 4.52 / 92% | pending | 4.40 / 91% |
 | F lighting | 4.14 / 82% | pending | 3.92 / 76% |
 | **all 300** | **4.18 / 83%** | pending | **4.05 / 79%** |
