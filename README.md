@@ -6,9 +6,6 @@ image against each prompt's own checklist.
 
 **View the comparison: https://jo-nike.github.io/moss-kromoss-eval/**
 
-> Status 2026-10-19: MOSS SFT and Kromoss 8-step are complete and graded. Kromoss 25-step is still rendering
-> (213 of 300 on the site); sets A to D are graded.
-
 | column | weights | steps | sampler | CFG | skip-layer guidance |
 |---|---|---|---|---|---|
 | MOSS SFT | [`moss_image_sft_bf16`](https://huggingface.co/Comfy-Org/MOSS-Image) | 25 | er_sde / simple | 2.5 | layer 22, 0-50% |
@@ -25,7 +22,7 @@ drop-in for the MOSS benchmark settings, not at its preferred settings.
 
 Rendered with ComfyUI v0.41.0-18 ([`6607f36b`](https://github.com/comfyanonymous/ComfyUI/commit/6607f36b53c7b695b160ac5b52d595e9e3752a2d)),
 torch 2.12.1+cu130, driver 610.57.04. The MOSS column was rendered on 2026-10-18, the Kromoss columns on 2026-10-19,
-on the same ComfyUI commit.
+on the same ComfyUI commit. All 900 renders succeeded.
 
 ## The prompts
 
@@ -49,11 +46,36 @@ Six sets of 50, each prompt written with a checklist of 4-8 things the image mus
 | C sci-fi | 4.10 / 80% | 4.04 / 79% | 4.12 / 76% |
 | D styles | 4.24 / 83% | 4.28 / 85% | 4.24 / 81% |
 | E text | 4.52 / 92% | 4.36 / 89% | 4.40 / 91% |
-| F lighting | 4.14 / 82% | pending | 3.92 / 76% |
-| **all 300** | **4.18 / 83%** | pending | **4.05 / 79%** |
-| median render | 60.7 s | pending | 11.4 s |
+| F lighting | 4.14 / 82% | 4.16 / 79% | 3.92 / 76% |
+| **all 300** | **4.18 / 83%** | **4.11 / 81%** | **4.05 / 79%** |
+| median render | 60.7 s | 60.1 s | 11.4 s |
 
 Mean 1-5 grade / share of checklist items graded a full pass.
+
+| score | 5 | 4 | 3 | 2 | 1 |
+|---|---|---|---|---|---|
+| MOSS SFT | 109 | 145 | 38 | 8 | 0 |
+| Kromoss | 98 | 146 | 48 | 8 | 0 |
+| Kromoss 8-step | 94 | 141 | 52 | 13 | 0 |
+
+Prompt by prompt against MOSS: Kromoss scored higher on 58, lower on 72 and the same on 170. Kromoss 8-step scored
+higher on 61, lower on 88 and the same on 151.
+
+### What the grades show
+
+- **At these settings the three are close.** Kromoss sits 0.07 below MOSS overall and 8-step another 0.06 below,
+  with ties on more than half the prompts. Kromoss leads only on art styles (D) and lighting (F), both by a few
+  hundredths; MOSS leads on people (A), groups (B), sci-fi (C) and text (E).
+- **The 8-step LoRA costs little for a 5.3x speed-up.** It matches or beats the 25-step Kromoss on sci-fi (C) and text
+  (E); its losses are concentrated in people (A, 3.70) and lighting (F, 3.92), and it has the most 2s (13).
+- **They fail the same way.** The set reviews for all three models report the same weak spots: named hand shapes snap to a common
+  gesture, left/right on the body is close to a coin flip, size ratios given in words are ignored, light lands on
+  the right side but its consequences (backlight, cast shadows) do not, and counts of five or more usually gain one.
+  The shared strengths are text (Chinese included), JSON layout placement, camera technique and medium adherence.
+- **Kromoss is not at its own settings here.** It was fine-tuned at 1024 px and its card recommends 50 steps at CFG 3;
+  this benchmark runs it at ~2 MP and 25 steps to match MOSS. A run at the card's settings could rank differently.
+
+Each set's written findings are in `bench/reviews/<model>/review_X.md`.
 
 ## How the grading works
 
