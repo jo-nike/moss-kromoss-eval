@@ -48,7 +48,7 @@ Six sets of 50, each prompt written with a checklist of 4-8 things the image mus
 | B groups | 4.10 / 82% | 3.94 / 76% | 3.94 / 78% |
 | C sci-fi | 4.10 / 80% | 4.04 / 79% | 4.12 / 76% |
 | D styles | 4.24 / 83% | 4.28 / 85% | 4.24 / 81% |
-| E text | 4.52 / 92% | pending | 4.40 / 91% |
+| E text | 4.52 / 92% | 4.36 / 89% | 4.40 / 91% |
 | F lighting | 4.14 / 82% | pending | 3.92 / 76% |
 | **all 300** | **4.18 / 83%** | pending | **4.05 / 79%** |
 | median render | 60.7 s | pending | 11.4 s |
