@@ -1,0 +1,16 @@
+You are reviewing a benchmark of Kromoss, a fine-tune of MOSS-Image, a new 5B text-to-image model, to build a measured prompting guide. Be a strict, honest grader: the point is to find where the model fails as well as where it succeeds. Do not generate images; do not modify any input files.
+
+Inputs (directory D = <D>):
+- D/prompts_B.jsonl: 50 prompts (category: groups, multiple subjects, counting, interaction, crowds). Each line has id, sub, aspect, format, prompt, checks (criteria the image should meet). Prompts B021, B029, B033, B036, B042 write counts as digits; the rest use words.
+- D/jpg/<id>.jpg: the rendered image for each id (1280 px JPEG of a ~2 MP render). Settings for every image: Kromoss bf16 (a full fine-tune of MOSS-Image-Base) with its 8-step DMD distillation LoRA at strength 1, 8 steps euler/simple, cfg 1 (so no negative prompt and no skip-layer guidance).
+- For calibration, K/review_A.md is the reviewer summary of the previous set (single people). Use the same strictness and file formats. K = <K> (MOSS-Image SFT reviewers, other sets only). Read only files under D and K; do not search for or open any other review files.
+
+For EVERY id B001..B050: read the prompt and checks, then LOOK at the image with the Read tool (actually view each image; never grade from the prompt alone). Grade each check pass / partial / fail. COUNT people and objects carefully and record the counted number in the note. Then look beyond the checks: attribute binding (does each person carry their own described clothing, or do attributes leak between people), merged or duplicated faces and bodies, limbs that belong to nobody, hands in interactions, crowd faces, any rendered text (quote exactly what is rendered vs what was asked), elements dropped or added, and image quality.
+
+Write D/review_B.jsonl, one JSON object per id:
+{"id":"B001","checks":[{"check":"...","result":"pass|partial|fail","note":"short"}],"score":1-5,"anatomy_issues":["..."],"text_rendered":"exact text seen or null","dropped":["prompt elements missing"],"quality_notes":"one or two sentences","standout":true|false}
+Score: 5 = everything right and beautiful, 4 = minor misses, 3 = noticeable miss but usable, 2 = major miss, 1 = broken. Set standout true only for roughly the best 5-8 images.
+
+Then write D/review_B.md (under 600 words, same structure as K/review_A.md): pass rate per check type, exact-count accuracy by count size (2, 3, 4, 5, 6, 7, larger) and digits vs words, the most common failure modes with ids as evidence, what prompt features correlated with success or failure, and concrete prompting advice supported by the evidence. Note uncertainty where a pattern rests on only 1-2 images.
+
+Reply with only: mean score, check pass rate, the three most important findings in one line each, and the ids of the standouts.

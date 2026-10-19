@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MOSS vs Kromoss</title>
+<meta name="description" content="300 prompts, three MOSS-Image variants, identical seeds: MOSS-Image SFT, Kromoss, and Kromoss with the 8-step DMD LoRA. Every image graded against its own checklist.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: contact sheet. Summary table, filter bar, then one strip per prompt with three frames side by side. */
+:root {
+  color-scheme: light;
+  --bg: #eef0f3; --sheet: #fbfcfd; --ink: #16191e; --muted: #5d6573; --rule: #d6dae1;
+  --accent: #2f4fd8; --pass: #1f7a4d; --partial: #9a6a00; --fail: #b3261e; --chip: #e4e8ee;
+  --s5: #1f7a4d; --s4: #4a8a3a; --s3: #9a6a00; --s2: #c2541b; --s1: #b3261e;
+  --display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1114; --sheet: #171a1f; --ink: #e7eaef; --muted: #98a1ae; --rule: #2a2f37;
+    --accent: #8ea2ff; --pass: #5cc48f; --partial: #e2b44a; --fail: #f2847c; --chip: #232830;
+    --s5: #5cc48f; --s4: #9ccf6a; --s3: #e2b44a; --s2: #f0965a; --s1: #f2847c;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1560px; margin: 0 auto; padding-block: 36px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 26px; }
+header { display: flex; flex-direction: column; gap: 12px; max-width: 78ch; }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1.02; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 400; font-size: 1.7rem; margin: 0; }
+header p { margin: 0; color: var(--muted); }
+header p b { color: var(--ink); font-weight: 600; }
+a { color: var(--accent); }
+.summary { display: flex; flex-direction: column; gap: 10px; }
+.tablewrap { overflow-x: auto; background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 0.88rem; }
+th, td { padding: 8px 12px; text-align: right; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+thead th { font-weight: 500; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+tbody tr:last-child td { border-bottom: none; }
+td.best { font-weight: 600; color: var(--accent); }
+td .sub { color: var(--muted); font-size: 0.78rem; margin-left: 4px; }
+.setname { color: var(--muted); font-size: 0.8rem; margin-left: 6px; }
+.note { font-size: 0.82rem; color: var(--muted); margin: 0; max-width: 90ch; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--bg); padding-block: 10px; border-bottom: 1px solid var(--rule); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: inherit; font-size: 0.82rem; border: 1px solid var(--rule); background: var(--sheet); color: var(--ink); border-radius: 999px; padding: 3px 11px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+label.ctl { display: flex; gap: 6px; align-items: center; font-size: 0.82rem; color: var(--muted); }
+select, input[type="search"] { font: inherit; font-size: 0.82rem; background: var(--sheet); color: var(--ink); border: 1px solid var(--rule); border-radius: 4px; padding: 3px 6px; }
+input[type="search"] { width: 14em; max-width: 100%; }
+.count { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); margin-left: auto; }
+.legend { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.col-label { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.col-label b { font-weight: 600; font-size: 0.92rem; }
+.col-label span { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+#strips { display: flex; flex-direction: column; gap: 20px; }
+.strip { background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 12px; scroll-margin-top: 120px; }
+.strip-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+.sid { font-family: var(--mono); font-weight: 500; font-size: 0.9rem; color: var(--accent); text-decoration: none; }
+.stitle { font-weight: 600; font-size: 1.02rem; }
+.scat { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.frames { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: start; }
+figure { margin: 0; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+figure button { all: unset; cursor: zoom-in; display: block; border-radius: 3px; overflow: hidden; background: var(--chip); }
+figure button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+figure img { display: block; width: 100%; height: auto; max-width: 100%; }
+figcaption { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-family: var(--mono); font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+figcaption .m { display: none; color: var(--ink); }
+.badge { font-family: var(--mono); font-size: 0.74rem; font-weight: 500; padding: 0 7px; border-radius: 3px; color: var(--sheet); background: var(--muted); }
+.badge[data-s="5"] { background: var(--s5); } .badge[data-s="4"] { background: var(--s4); } .badge[data-s="3"] { background: var(--s3); }
+.badge[data-s="2"] { background: var(--s2); } .badge[data-s="1"] { background: var(--s1); }
+.star { color: var(--partial); margin-left: 4px; }
+.missing { aspect-ratio: 1; display: grid; place-items: center; color: var(--muted); font-size: 0.85rem; border: 1px dashed var(--rule); border-radius: 3px; }
+.prompt { font-size: 0.86rem; margin: 0; max-width: 95ch; }
+.tag { display: inline-block; font-family: var(--mono); font-size: 0.66rem; background: var(--chip); color: var(--muted); padding: 1px 6px; border-radius: 3px; margin-right: 6px; vertical-align: 1px; }
+details > summary { cursor: pointer; font-size: 0.8rem; color: var(--muted); }
+details[open] > summary { margin-bottom: 8px; }
+.grades { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.grade { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.grade h4 { margin: 0; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 500; }
+.grade ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: 0.78rem; }
+.grade li { display: grid; grid-template-columns: 4.3em minmax(0, 1fr); gap: 6px; }
+.r { font-family: var(--mono); font-size: 0.66rem; text-transform: uppercase; padding-top: 2px; }
+.r.pass { color: var(--pass); } .r.partial { color: var(--partial); } .r.fail { color: var(--fail); }
+.qn { font-size: 0.78rem; color: var(--muted); font-style: italic; margin: 0; }
+.qn b { font-style: normal; font-weight: 500; color: var(--ink); }
+pre { font-family: var(--mono); font-size: 0.7rem; overflow-x: auto; white-space: pre-wrap; word-break: break-word; background: var(--chip); padding: 8px; border-radius: 4px; margin: 0; }
+dialog { border: none; padding: 0; background: #0b0d10; max-width: 100vw; max-height: 100vh; width: 100vw; height: 100vh; }
+dialog::backdrop { background: #0b0d10; }
+.lb { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  padding: max(12px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); }
+.lb img { max-width: 100%; max-height: calc(100vh - 120px); width: auto; height: auto; display: block; }
+.lbbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; color: #e7eaef; font-family: var(--mono); font-size: 0.78rem; }
+.lbbar button { font: inherit; background: #232830; color: #e7eaef; border: 1px solid #3a414c; border-radius: 4px; padding: 4px 10px; cursor: pointer; }
+.lbbar button[aria-pressed="true"] { background: #e7eaef; color: #0f1114; }
+.lbbar a { color: #8ea2ff; }
+.lbhint { color: #98a1ae; font-size: 0.7rem; }
+footer { color: var(--muted); font-size: 0.82rem; max-width: 90ch; display: flex; flex-direction: column; gap: 6px; }
+@media (max-width: 900px) { .grades { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) {
+  .legend { display: none; }
+  .frames { grid-template-columns: minmax(0, 1fr); }
+  figcaption .m { display: inline; }
+  .count { margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>MOSS vs Kromoss</h1>
+    <p>The same <b>300 prompts</b> and seeds rendered by three variants of the MOSS-Image architecture on one RTX&nbsp;5080. Every image was graded against its prompt's own checklist by a vision model looking at a 1280&nbsp;px copy. Click any frame for the full-resolution image; in the viewer, <b>1 / 2 / 3</b> or <b>←&nbsp;→</b> flip between the three models on the same prompt.</p>
+  </header>
+
+  <section class="summary" aria-labelledby="sumh">
+    <h2 id="sumh">Scores by set</h2>
+    <div class="tablewrap"><table id="sumtable"></table></div>
+    <p class="note" id="sumnote"></p>
+  </section>
+
+  <div class="controls" role="toolbar" aria-label="Filter prompts">
+    <div class="chips" id="setchips"></div>
+    <label class="ctl" for="sort">Sort
+      <select id="sort">
+        <option value="id">by prompt id</option>
+        <option value="kgain">Kromoss gain over MOSS</option>
+        <option value="kloss">Kromoss loss vs MOSS</option>
+        <option value="dgain">8-step gain over MOSS</option>
+        <option value="dloss">8-step loss vs MOSS</option>
+        <option value="spread">largest disagreement</option>
+      </select>
+    </label>
+    <label class="ctl" for="q">Search <input type="search" id="q" placeholder="prompt text or id"></label>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div class="legend" id="legend" aria-hidden="true"></div>
+  <main id="strips"></main>
+
+  <footer id="foot"></footer>
+</div>
+
+<dialog id="lbd" aria-label="Full-size image">
+  <div class="lb" id="lb">
+    <img id="lbimg" alt="">
+    <div class="lbbar" id="lbbar"></div>
+  </div>
+</dialog>
+
+<script>
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let DATA, MODELS;
+const state = { set: "all", sort: "id", q: "" };
+
+fetch("data.json").then(r => r.json()).then(d => {
+  DATA = d.prompts; MODELS = d.models;
+  try { const s = JSON.parse(localStorage.getItem("mk-state") || "{}"); Object.assign(state, s); } catch (e) {}
+  renderSummary(d);
+  renderLegend();
+  renderControls(d);
+  renderStrips();
+  renderFoot(d);
+  if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
+});
+
+function save() { try { localStorage.setItem("mk-state", JSON.stringify({ set: state.set, sort: state.sort })); } catch (e) {} }
+
+function renderSummary(d) {
+  const sets = d.sets;
+  const head = `<thead><tr><th>Set</th>${MODELS.map(m => `<th>${esc(m.short)}<br>mean · checks</th>`).join("")}</tr></thead>`;
+  const rows = [...sets, { key: "all", name: "All 300" }].map(s => {
+    const vals = MODELS.map(m => d.summary[m.key][s.key]);
+    const best = Math.max(...vals.map(v => v ? v.mean : -1));
+    return `<tr><td>${s.key === "all" ? "<b>All 300</b>" : esc(s.key)}<span class="setname">${s.key === "all" ? "" : esc(s.name)}</span></td>${vals.map(v =>
+      v ? `<td class="${v.mean === best ? "best" : ""}">${v.mean.toFixed(2)}<span class="sub">${Math.round(v.pass * 100)}%</span></td>` : "<td>–</td>").join("")}</tr>`;
+  }).join("");
+  const timeRow = `<tr><td>Median render<span class="setname">per ~2 MP image</span></td>${MODELS.map(m => `<td>${d.summary[m.key].secs != null ? d.summary[m.key].secs.toFixed(1) + " s" : "–"}</td>`).join("")}</tr>`;
+  document.getElementById("sumtable").innerHTML = head + `<tbody>${rows}${timeRow}</tbody>`;
+  document.getElementById("sumnote").textContent = d.note || "";
+}
+
+function renderLegend() {
+  document.getElementById("legend").innerHTML = MODELS.map(m => `<div class="col-label"><b>${esc(m.name)}</b><span>${esc(m.settings)}</span></div>`).join("");
+}
+
+function renderControls(d) {
+  const chips = [{ key: "all", name: "All" }, ...d.sets];
+  const el = document.getElementById("setchips");
+  el.innerHTML = chips.map(s => `<button type="button" class="chip" data-set="${esc(s.key)}" aria-pressed="${state.set === s.key}">${s.key === "all" ? "All" : esc(s.key + " · " + s.name)}</button>`).join("");
+  el.addEventListener("click", e => {
+    const b = e.target.closest("[data-set]"); if (!b) return;
+    state.set = b.dataset.set;
+    el.querySelectorAll("[data-set]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    save(); renderStrips();
+  });
+  const sort = document.getElementById("sort");
+  sort.value = state.sort;
+  sort.addEventListener("change", () => { state.sort = sort.value; save(); renderStrips(); });
+  const q = document.getElementById("q");
+  q.addEventListener("input", () => { state.q = q.value.trim().toLowerCase(); renderStrips(); });
+}
+
+const sc = (p, k) => p.grades[k]?.score ?? null;
+function sortKey(p) {
+  const m = sc(p, "moss"), k = sc(p, "kromoss"), d = sc(p, "dmd8");
+  switch (state.sort) {
+    case "kgain": return -((k ?? 0) - (m ?? 0));
+    case "kloss": return (k ?? 0) - (m ?? 0);
+    case "dgain": return -((d ?? 0) - (m ?? 0));
+    case "dloss": return (d ?? 0) - (m ?? 0);
+    case "spread": { const v = [m, k, d].filter(x => x != null); return v.length ? -(Math.max(...v) - Math.min(...v)) : 0; }
+    default: return 0;
+  }
+}
+
+function frame(p, m) {
+  const r = p.renders[m.key];
+  if (!r) return `<figure><div class="missing" style="aspect-ratio:${p.w}/${p.h}">not rendered</div></figure>`;
+  const g = p.grades[m.key];
+  const badge = g ? `<span><span class="badge" data-s="${g.score}" title="grade ${g.score} of 5">${g.score}/5</span>${g.standout ? '<span class="star" title="standout">★</span>' : ""}</span>` : "<span></span>";
+  return `<figure><button type="button" data-id="${p.id}" data-m="${m.key}" aria-label="${esc("Open " + p.id + ", " + m.name + ", full size")}">
+    <img src="img/${m.key}/thumb/${p.id}.jpg" alt="${esc(p.id + ", " + m.name)}" loading="lazy" decoding="async" width="${r.w}" height="${r.h}"></button>
+    <figcaption><span class="m">${esc(m.short)}</span>${badge}<span>${r.secs != null ? r.secs.toFixed(1) + " s" : ""}</span></figcaption></figure>`;
+}
+
+function gradeBlock(p, m) {
+  const g = p.grades[m.key];
+  if (!g) return `<div class="grade"><h4>${esc(m.short)}</h4><p class="qn">not graded</p></div>`;
+  const checks = g.checks.map(c => `<li><span class="r ${esc(c.result)}">${esc(c.result)}</span><span>${esc(c.check)}${c.note ? ` <span style="color:var(--muted)">(${esc(c.note)})</span>` : ""}</span></li>`).join("");
+  const extra = [
+    g.text_rendered ? `<p class="qn"><b>Text seen:</b> ${esc(g.text_rendered)}</p>` : "",
+    g.anatomy_issues?.length ? `<p class="qn"><b>Anatomy:</b> ${esc(g.anatomy_issues.join("; "))}</p>` : "",
+    g.dropped?.length ? `<p class="qn"><b>Dropped:</b> ${esc(g.dropped.join("; "))}</p>` : "",
+  ].join("");
+  return `<div class="grade"><h4>${esc(m.short)} · ${g.score}/5</h4><ul>${checks}</ul>${extra}<p class="qn">${esc(g.quality_notes)}</p></div>`;
+}
+
+function renderStrips() {
+  let list = DATA.filter(p => state.set === "all" || p.id[0] === state.set);
+  if (state.q) list = list.filter(p => p.id.toLowerCase().includes(state.q) || p.prompt.toLowerCase().includes(state.q) || (p.sub || "").toLowerCase().includes(state.q));
+  if (state.sort !== "id") list = list.map((p, i) => [sortKey(p), i, p]).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map(x => x[2]);
+  document.getElementById("count").textContent = `${list.length} of ${DATA.length} prompts`;
+  document.getElementById("strips").innerHTML = list.map(p => `<section class="strip" id="${p.id}">
+    <div class="strip-head"><a class="sid" href="#${p.id}">${p.id}</a><span class="stitle">${esc(p.sub)}</span><span class="scat">${esc(p.category)} · ${p.w}×${p.h}</span></div>
+    <div class="frames">${MODELS.map(m => frame(p, m)).join("")}</div>
+    <p class="prompt"><span class="tag">${esc(p.format)}</span>${esc(p.prompt)}</p>
+    ${p.layout ? `<details><summary>Layout JSON</summary><pre>${esc(JSON.stringify(p.layout, null, 1))}</pre></details>` : ""}
+    <details><summary>Checklist grades for all three</summary><div class="grades">${MODELS.map(m => gradeBlock(p, m)).join("")}</div></details>
+  </section>`).join("");
+}
+
+// Lightbox: flip between models on the same prompt
+const lbd = document.getElementById("lbd"), lbimg = document.getElementById("lbimg"), lbbar = document.getElementById("lbbar");
+let cur = null;
+function showLb(id, mkey) {
+  const p = DATA.find(x => x.id === id); if (!p) return;
+  cur = { id, mkey };
+  const m = MODELS.find(x => x.key === mkey);
+  lbimg.src = `img/${mkey}/full/${id}.jpg`;
+  lbimg.alt = `${id}, ${m.name}`;
+  const g = p.grades[mkey];
+  lbbar.innerHTML = `<span>${esc(id)}</span>${MODELS.map((x, i) => `<button type="button" data-m="${x.key}" aria-pressed="${x.key === mkey}">${i + 1} · ${esc(x.short)}${p.grades[x.key] ? " · " + p.grades[x.key].score + "/5" : ""}</button>`).join("")}
+    <a href="img/${mkey}/full/${id}.jpg" target="_blank" rel="noopener">open file</a><button type="button" data-close>close</button>
+    <span class="lbhint">1 2 3 or ← → to switch · Esc to close</span>`;
+  if (!lbd.open) lbd.showModal();
+}
+document.getElementById("strips").addEventListener("click", e => {
+  const b = e.target.closest("button[data-id]"); if (b) showLb(b.dataset.id, b.dataset.m);
+});
+lbbar.addEventListener("click", e => {
+  e.stopPropagation();
+  if (e.target.closest("[data-close]")) return lbd.close();
+  const b = e.target.closest("button[data-m]"); if (b && cur) showLb(cur.id, b.dataset.m);
+});
+document.getElementById("lb").addEventListener("click", e => { if (e.target.id === "lb" || e.target === lbimg) lbd.close(); });
+document.addEventListener("keydown", e => {
+  if (!lbd.open || !cur) return;
+  const i = MODELS.findIndex(m => m.key === cur.mkey);
+  if (["1", "2", "3"].includes(e.key)) showLb(cur.id, MODELS[+e.key - 1].key);
+  else if (e.key === "ArrowRight") showLb(cur.id, MODELS[(i + 1) % MODELS.length].key);
+  else if (e.key === "ArrowLeft") showLb(cur.id, MODELS[(i + MODELS.length - 1) % MODELS.length].key);
+});
+
+function renderFoot(d) {
+  document.getElementById("foot").innerHTML = d.footer || "";
+}
+</script>
+</body>
+</html>

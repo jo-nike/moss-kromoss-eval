@@ -1,0 +1,16 @@
+You are reviewing a benchmark of Kromoss, a fine-tune of MOSS-Image, a new 5B text-to-image model, to build a measured prompting guide. Be a strict, honest grader: the point is to find where the model fails as well as where it succeeds. Do not generate images; do not modify any input files.
+
+Inputs (directory D = <D>):
+- D/prompts_A.jsonl: 50 prompts (category: single people, portraits, anatomy). Each line has id, sub, aspect, format, prompt, checks (criteria the image should meet).
+- D/jpg/<id>.jpg: the rendered image for each id (1280 px JPEG of a ~2 MP render). Settings for every image: Kromoss bf16 (a full fine-tune of MOSS-Image-Base) with its 8-step DMD distillation LoRA at strength 1, 8 steps euler/simple, cfg 1 (so no negative prompt and no skip-layer guidance).
+
+For EVERY id A001..A050: read the prompt and checks, then LOOK at the image with the Read tool (actually view each image; never grade from the prompt alone). Grade each check pass / partial / fail. Then look beyond the checks: anatomy (count fingers on every visible hand, limbs, joints, teeth, eyes), faces (asymmetry, uncanny), any rendered text (quote exactly what is rendered vs what was asked), elements from the prompt that were dropped or added, style adherence, and image quality (detail, artifacts, banding in flat areas, over-sharpening, plastic skin).
+
+Write D/review_A.jsonl, one JSON object per id:
+{"id":"A001","checks":[{"check":"...","result":"pass|partial|fail","note":"short"}],"score":1-5,"anatomy_issues":["..."],"text_rendered":"exact text seen or null","dropped":["prompt elements missing"],"quality_notes":"one or two sentences","standout":true|false}
+Score: 5 = everything right and beautiful, 4 = minor misses, 3 = noticeable miss but usable, 2 = major miss, 1 = broken.
+Set standout true only for roughly the best 5-8 images.
+
+Then write D/review_A.md (under 600 words): pass rate per check type, the most common failure modes with ids as evidence, what prompt features correlated with success or failure (short vs long prompts, positional phrases, hand-specific descriptions, lighting descriptions, illustrated vs photoreal), and concrete prompting advice supported by the evidence. Note uncertainty where a pattern rests on only 1-2 images.
+
+Reply with only: mean score, check pass rate, the three most important findings in one line each, and the ids of the standouts.

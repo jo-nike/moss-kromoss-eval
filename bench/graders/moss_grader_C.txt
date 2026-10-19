@@ -1,0 +1,16 @@
+You are reviewing a benchmark of MOSS-Image, a new 5B text-to-image model, to build a measured prompting guide. Be a strict, honest grader: the point is to find where the model fails as well as where it succeeds. Do not generate images; do not modify any input files.
+
+Inputs (directory D = <D>):
+- D/prompts_C.jsonl: 50 prompts (category: sci-fi, fantasy, concept art, environments and architecture, impossible geometry, physically tricky effects). Each line has id, sub, aspect, format, prompt, checks (criteria the image should meet).
+- D/jpg/<id>.jpg: the rendered image for each id (1280 px JPEG of a ~2 MP render). Settings for every image: MOSS-Image-SFT bf16, 25 steps er_sde/simple, cfg 2.5, skip-layer guidance on layer 22 for the first half, negative "nsfw, worst quality, bad anatomy, watermark, jpeg artifact".
+- For calibration, D/review_A.md, D/review_B.md and D/review_F.md are the reviewer summaries of earlier sets. Use the same strictness and file formats.
+
+For EVERY id C001..C050: read the prompt and checks, then LOOK at the image with the Read tool (actually view each image; never grade from the prompt alone). Grade each check pass / partial / fail. Judge creature anatomy (wing/leg/head counts on dragons, griffins, hydras), counts of moons/ships/towers, scale cues, perspective and architectural coherence (columns, arches, stairs that connect), reflections and refraction, smoke/fire/holograms, whether impossible geometry actually reads as impossible, style adherence (photoreal film still vs matte painting vs concept art vs painted media), any rendered text (quote exactly what is rendered vs what was asked), elements dropped or added, and image quality.
+
+Write D/review_C.jsonl, one JSON object per id:
+{"id":"C001","checks":[{"check":"...","result":"pass|partial|fail","note":"short"}],"score":1-5,"anatomy_issues":["..."],"text_rendered":"exact text seen or null","dropped":["prompt elements missing"],"quality_notes":"one or two sentences","standout":true|false}
+Score: 5 = everything right and beautiful, 4 = minor misses, 3 = noticeable miss but usable, 2 = major miss, 1 = broken. Set standout true only for roughly the best 5-8 images.
+
+Then write D/review_C.md (under 600 words, same structure as review_A.md): pass rate per check type, the most common failure modes with ids as evidence, what prompt features correlated with success or failure, and concrete prompting advice supported by the evidence. Note uncertainty where a pattern rests on only 1-2 images.
+
+Reply with only: mean score, check pass rate, the three most important findings in one line each, and the ids of the standouts.
