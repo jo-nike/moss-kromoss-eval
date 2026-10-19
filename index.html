@@ -164,7 +164,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;
 let DATA, MODELS;
 const state = { set: "all", sort: "id", q: "" };
 
-fetch("data.json").then(r => r.json()).then(d => {
+fetch("data.json", { cache: "no-cache" }).then(r => r.json()).then(d => {
   DATA = d.prompts; MODELS = d.models;
   try { const s = JSON.parse(localStorage.getItem("mk-state") || "{}"); Object.assign(state, s); } catch (e) {}
   renderSummary(d);
